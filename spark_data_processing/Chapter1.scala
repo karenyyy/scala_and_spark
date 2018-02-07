@@ -2,6 +2,8 @@
 //To be executed in Spark 2.2 shell
 
 //Code for Introducing SparkSession section
+
+
 import org.apache.spark.sql.types._
 spark.conf.set("spark.executor.cores", "2")
 spark.conf.set("spark.executor.memory", "4g")
@@ -15,9 +17,12 @@ df.createOrReplaceTempView("cancerTable")
 val sqlDF = spark.sql("SELECT sample, bNuc from cancerTable") 
 sqlDF.show()
 
+
 case class CancerClass(sample: Long, cThick: Int, uCSize: Int, uCShape: Int, mAdhes: Int, sECSize: Int, bNuc: Int, bChrom: Int, nNuc: Int, mitosis: Int, clas: Int)
 //Replace directory for the input file with location of the file on your machine.
 val cancerDS = spark.sparkContext.textFile("file:///Users/aurobindosarkar/Documents/SparkBook/data/breast-cancer-wisconsin.data").map(_.split(",")).map(attributes => CancerClass(attributes(0).trim.toLong, attributes(1).trim.toInt, attributes(2).trim.toInt, attributes(3).trim.toInt, attributes(4).trim.toInt, attributes(5).trim.toInt, attributes(6).trim.toInt, attributes(7).trim.toInt, attributes(8).trim.toInt, attributes(9).trim.toInt, attributes(10).trim.toInt)).toDS()
+
+
 def binarize(s: Int): Int = s match {case 2 => 0 case 4 => 1 }
 spark.udf.register("udfValueToCategory", (arg: Int) => binarize(arg))
 val sqlUDF = spark.sql("SELECT *, udfValueToCategory(clas) from cancerTable")
@@ -51,8 +56,11 @@ val cancerDF = spark.createDataFrame(data, recordSchema)
 case class RestClass(name: String, street: String, city: String, phone: String, cuisine: String)
 //Replace directory for the input files with location of the files on your machine.
 val rest1DS = spark.sparkContext.textFile("file:///Users/aurobindosarkar/Documents/SparkBook/data/zagats.csv").map(_.split(",")).map(attributes => RestClass(attributes(0).trim, attributes(1).trim, attributes(2).trim, attributes(3).trim, attributes(4).trim)).toDS()
+
 val rest2DS = spark.sparkContext.textFile("file:///Users/aurobindosarkar/Documents/SparkBook/data/fodors.csv").map(_.split(",")).map(attributes => RestClass(attributes(0).trim, attributes(1).trim, attributes(2).trim, attributes(3).trim, attributes(4).trim)).toDS()
+
 def formatPhoneNo(s: String): String = s match {case s if s.contains("/") => s.replaceAll("/", "-").replaceAll("- ", "-").replaceAll("--", "-") case _ => s } 
+
 val udfStandardizePhoneNos = udf[String, String]( x => formatPhoneNo(x) ) 
 val rest2DSM1 = rest2DS.withColumn("stdphone", udfStandardizePhoneNos(rest2DS.col("phone")))
 rest1DS.createOrReplaceTempView("rest1Table") 
